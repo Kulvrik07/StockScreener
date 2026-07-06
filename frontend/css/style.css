@@ -232,6 +232,13 @@ body { display: flex; }
 #ticker-change { font-size: 13px; font-weight: 600; }
 #ticker-volume, #last-updated { font-size: 11px; }
 
+#topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 #refresh-btn {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -1194,16 +1201,25 @@ body { display: flex; }
 
 /* ══════════ Mobile Suche ══════════ */
 #mobile-search-btn {
-  display: none;   /* nur auf Mobile sichtbar */
-  background: none;
+  display: none;   /* Desktop: ausgeblendet */
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
   border: none;
-  color: var(--text-dim);
+  color: #fff;
   cursor: pointer;
-  padding: 6px;
-  border-radius: var(--radius);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   line-height: 0;
+  flex-shrink: 0;
+  transition: background var(--transition);
 }
-#mobile-search-btn:hover { color: var(--text); background: var(--bg-hover); }
+#mobile-search-btn:hover { background: var(--accent-hover, #1a5fd8); }
+
+@media (max-width: 768px) {
+  #mobile-search-btn { display: flex; }
+}
 
 #mobile-search-overlay {
   position: fixed;
@@ -1279,22 +1295,6 @@ body { display: flex; }
   #mobile-search-btn { display: flex; align-items: center; justify-content: center; }
 }
 
-/* ── Mobile Search Button sichtbar ── */
-#mobile-search-btn {
-  display: none;
-  background: var(--accent);
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 6px 12px;
-  border-radius: var(--radius);
-  font-size: 12px;
-  font-weight: 600;
-  gap: 5px;
-  align-items: center;
-}
-#mobile-search-label { display: inline; }
-
 /* Chart-Placeholder mit Suche-CTA */
 #chart-placeholder {
   display: flex;
@@ -1319,8 +1319,3 @@ body { display: flex; }
   letter-spacing: 0.01em;
 }
 #chart-search-cta:hover { background: var(--accent-hover); }
-
-@media (max-width: 768px) {
-  #mobile-search-btn { display: flex; }
-  #refresh-btn span  { display: none; }   /* "Refresh" Text ausblenden, nur Icon */
-}
