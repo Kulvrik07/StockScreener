@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockScreener</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- lightweight-charts v4 (MIT, CDN) -->
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside id="sidebar">
+  <div id="logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2962ff" stroke-width="2.2">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span>StockScreener</span>
+  </div>
+
+  <!-- Ticker-Suche -->
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Ticker suchen…" autocomplete="off" />
+    <ul id="search-results" class="dropdown hidden"></ul>
+  </div>
+
+  <!-- Watchlist -->
+  <div id="watchlist-header">
+    <span>Watchlist</span>
+    <span id="watchlist-count">0</span>
+  </div>
+  <ul id="watchlist-items"></ul>
+
+  <!-- Nav-Links -->
+  <nav id="sidebar-nav">
+    <button class="nav-btn active" data-view="chart">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><polyline points="7 15 11 11 13 13 17 9"/></svg>
+      Chart
+    </button>
+    <button class="nav-btn" data-view="fundamentals">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Fundamentals
+    </button>
+    <button class="nav-btn" data-view="insider">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Insider
+    </button>
+    <button class="nav-btn" data-view="screener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Screener
+    </button>
+    <button class="nav-btn" data-view="heatmap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Heatmap
+    </button>
+    <button class="nav-btn" data-view="browse">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Märkte
+    </button>
+    <button class="nav-btn" data-view="impressum">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Impressum
+    </button>
+  </nav>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main id="main">
+
+  <!-- ── Topbar ── -->
+  <header id="topbar">
+    <div id="active-ticker-info">
+      <span id="ticker-symbol">––</span>
+      <span id="ticker-name" class="dim">Keine Aktie ausgewählt</span>
+      <span id="ticker-price">––</span>
+      <span id="ticker-change" class="change-neutral">0.00%</span>
+      <span id="ticker-volume" class="dim"></span>
+      <span id="last-updated" class="dim"></span>
+    </div>
+    <div id="topbar-actions">
+      <button id="refresh-btn" title="Daten aktualisieren">&#x21BB; Refresh</button>
+    </div>
+  </header>
+
+  <!-- ── VIEW: Chart ── -->
+  <section id="view-chart" class="view active">
+    <!-- Zeitrahmen-Tabs + Indikator-Bar -->
+    <div id="chart-controls-row">
+      <div id="range-tabs">
+        <!-- Intraday -->
+        <span class="range-group-label">Intraday</span>
+        <button class="range-btn" data-range="1m">1m</button>
+        <button class="range-btn" data-range="2m">2m</button>
+        <button class="range-btn" data-range="5m">5m</button>
+        <button class="range-btn" data-range="15m">15m</button>
+        <button class="range-btn" data-range="30m">30m</button>
+        <button class="range-btn" data-range="1H">1H</button>
+        <button class="range-btn" data-range="2H">2H</button>
+        <button class="range-btn" data-range="4H">4H</button>
+        <button class="range-btn" data-range="6H">6H</button>
+        <button class="range-btn" data-range="12H">12H</button>
+        <span class="range-sep"></span>
+        <!-- Daily+ -->
+        <button class="range-btn active" data-range="1D">1T</button>
+        <button class="range-btn" data-range="1W">1W</button>
+        <button class="range-btn" data-range="1M">1M</button>
+      </div>
+      <div id="indicator-bar">
+        <span class="indicator-label">Ind:</span>
+        <button class="ind-btn active" data-ind="volume">Vol</button>
+        <button class="ind-btn" data-ind="sma20">SMA20</button>
+        <button class="ind-btn" data-ind="sma50">SMA50</button>
+        <button class="ind-btn" data-ind="sma200">SMA200</button>
+        <button class="ind-btn" data-ind="ema9">EMA9</button>
+        <button class="ind-btn" data-ind="ema20">EMA20</button>
+        <button class="ind-btn" data-ind="bb">BB</button>
+        <button class="ind-btn" data-ind="vwap">VWAP</button>
+        <button class="ind-btn" data-ind="psar">PSAR</button>
+        <button class="ind-btn" data-ind="rsi">RSI</button>
+        <button class="ind-btn" data-ind="stoch">Stoch</button>
+        <button class="ind-btn" data-ind="macd">MACD</button>
+        <button class="ind-btn" data-ind="cci">CCI</button>
+        <button class="ind-btn" data-ind="atr">ATR</button>
+        <button class="ind-btn" data-ind="obv">OBV</button>
+        <button class="ind-btn" data-ind="williams">%R</button>
+        <button class="ind-btn" data-ind="rs">RS/SPY</button>
+      </div>
+    </div>
+
+    <!-- Chart + News nebeneinander -->
+    <div class="chart-content">
+      <div id="chart-wrapper">
+        <div id="chart-toolbar">
+          <button class="draw-btn" data-tool="none" title="Cursor (kein Tool)">&#x2749;</button>
+          <button class="draw-btn" data-tool="hline" title="Horizontale Linie">&#x2500;</button>
+          <button class="draw-btn" data-tool="fib" title="Fibonacci Retracement">&#x1F4CF;</button>
+          <button class="draw-btn" data-tool="clear" title="Alle Zeichnungen löschen">&#x1F5D1;</button>
+        </div>
+        <div id="chart-main"></div>
+        <div id="chart-rs"   class="sub-chart hidden"></div>
+        <div id="chart-rsi"  class="sub-chart hidden"></div>
+        <div id="chart-macd" class="sub-chart hidden"></div>
+        <div id="chart-aux"  class="sub-chart hidden"></div>
+      </div>
+
+      <!-- News-Feed (rechts) -->
+      <div id="news-panel">
+        <div id="news-header">
+          <span>News</span>
+          <span id="news-ticker-label" class="dim">–</span>
+          <button id="news-refresh-btn" title="News aktualisieren">&#x21BB;</button>
+        </div>
+        <div id="news-list">
+          <p class="dim center">Aktie auswählen</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VIEW: Fundamentals ── -->
+  <section id="view-fundamentals" class="view">
+    <div id="fund-grid">
+      <div class="fund-card" id="fund-overview">
+        <h3>Überblick</h3>
+        <div id="fund-kpis" class="kpi-grid"></div>
+      </div>
+      <div class="fund-card" id="fund-income-q">
+        <h3>Quartalsergebnisse</h3>
+        <div id="fund-quarterly"></div>
+      </div>
+      <div class="fund-card" id="fund-income-a">
+        <h3>Jahresergebnisse</h3>
+        <div id="fund-annual"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VIEW: Insider ── -->
+  <section id="view-insider" class="view">
+    <div id="insider-layout">
+      <!-- Earnings-History + nächster Termin -->
+      <div class="alpha-card" id="card-earnings">
+        <div class="alpha-card-header">
+          <h3>Earnings History</h3>
+          <span id="earnings-next-badge" class="next-badge hidden"></span>
+        </div>
+        <div id="earnings-content"><p class="dim center">Aktie auswählen</p></div>
+      </div>
+
+      <!-- Insider-Transaktionen -->
+      <div class="alpha-card" id="card-insider">
+        <h3>Insider-Transaktionen <span class="dim" style="font-size:11px">(SEC Form 4)</span></h3>
+        <div id="insider-content"><p class="dim center">Aktie auswählen</p></div>
+      </div>
+
+      <!-- Short Interest -->
+      <div class="alpha-card" id="card-short">
+        <h3>Short Interest / Float</h3>
+        <div id="short-content"><p class="dim center">Aktie auswählen</p></div>
+      </div>
+
+      <!-- Options Flow -->
+      <div class="alpha-card" id="card-options">
+        <h3>Options Flow</h3>
+        <div id="options-content"><p class="dim center">Aktie auswählen</p></div>
+      </div>
+
+      <!-- Analysten-Empfehlungen -->
+      <div class="alpha-card" id="card-recs">
+        <h3>Analysten-Empfehlungen</h3>
+        <div id="recs-content"><p class="dim center">Aktie auswählen</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VIEW: Screener ── -->
+  <section id="view-screener" class="view">
+    <div id="screener-filters">
+      <h3>Filter</h3>
+      <div class="filter-grid">
+        <label>KGV max<input type="number" id="f-pe-max" placeholder="z.B. 30" step="0.5"/></label>
+        <label>KGV min<input type="number" id="f-pe-min" placeholder="z.B. 5"  step="0.5"/></label>
+        <label>KUV max<input type="number" id="f-ps-max" placeholder="z.B. 10" step="0.5"/></label>
+        <label>Marktkap. min (Mrd.)<input type="number" id="f-mcap-min" placeholder="z.B. 1" step="0.5"/></label>
+        <label>Div.rendite min (%)<input type="number" id="f-div-min" placeholder="z.B. 2" step="0.1"/></label>
+        <label>EPS min<input type="number" id="f-eps-min" placeholder="z.B. 0" step="0.1"/></label>
+        <label>Verschuld.grad max<input type="number" id="f-debt-max" placeholder="z.B. 100" step="1"/></label>
+        <label>Umsatzwachstum min (%)<input type="number" id="f-revgrowth-min" placeholder="z.B. 5" step="1"/></label>
+        <label>Max % unter 52W-Hoch<input type="number" id="f-52h" placeholder="z.B. -5" step="1"/></label>
+        <label>Min % über 52W-Tief<input type="number" id="f-52l" placeholder="z.B. 10" step="1"/></label>
+        <label>Short Float max (%)<input type="number" id="f-short" placeholder="z.B. 15" step="1"/></label>
+        <label>Beta max<input type="number" id="f-beta-max" placeholder="z.B. 2" step="0.1"/></label>
+        <label>Beta min<input type="number" id="f-beta-min" placeholder="z.B. 0.5" step="0.1"/></label>
+        <label>Tages-Änderung min (%)<input type="number" id="f-chg-min" placeholder="z.B. 2" step="0.5"/></label>
+      </div>
+      <div class="filter-actions">
+        <label>Sortieren nach:
+          <select id="f-sort-by">
+            <option value="market_cap">Marktkapitalisierung</option>
+            <option value="pe_ratio">KGV</option>
+            <option value="change_pct">Tagesänderung %</option>
+            <option value="dividend_yield">Dividendenrendite</option>
+            <option value="revenue_growth">Umsatzwachstum</option>
+            <option value="eps">EPS</option>
+            <option value="pct_from_high">% vom 52W-Hoch</option>
+            <option value="pct_from_low">% vom 52W-Tief</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="f-sort-desc" checked /> Absteigend</label>
+        <button id="screener-run-btn">Screener starten</button>
+      </div>
+    </div>
+    <div id="screener-results">
+      <p class="dim center">Filter setzen und Screener starten.</p>
+    </div>
+  </section>
+
+  <!-- ── VIEW: Heatmap ── -->
+  <section id="view-heatmap" class="view">
+    <div id="heatmap-header">
+      <span id="heatmap-title">S&amp;P 500 Sektor-Heatmap</span>
+      <div id="heatmap-toggle">
+        <button class="hmap-range-btn active" data-period="1d">1T</button>
+        <button class="hmap-range-btn" data-period="1w">1W</button>
+      </div>
+      <button id="heatmap-refresh-btn">&#x21BB;</button>
+    </div>
+    <div id="heatmap-grid"></div>
+  </section>
+
+  <!-- ── VIEW: Browse / Märkte ── -->
+  <section id="view-browse" class="view">
+    <div id="browse-header">
+      <div id="browse-group-tabs"></div>
+      <button id="browse-refresh-btn">&#x21BB; Aktualisieren</button>
+    </div>
+    <div id="browse-content">
+      <p class="dim center">Lade Marktdaten…</p>
+    </div>
+  </section>
+
+  <!-- ── VIEW: Impressum ── -->
+  <section id="view-impressum" class="view">
+    <div id="impressum-wrap">
+      <h2>Impressum</h2>
+      <h3>Angaben gemäß § 5 TMG</h3>
+      <p>Nils Zimmer<br>Espenstraße 4<br>66780 Rehlingen-Siersburg<br>Deutschland</p>
+      <h3>Kontakt</h3>
+      <p><a href="mailto:nils.zimmer07@gmail.com">nils.zimmer07@gmail.com</a></p>
+      <h3>Haftungsausschluss</h3>
+      <p>Dieses Tool dient ausschließlich zu Informations- und Analysezwecken. Es stellt keine Anlageberatung dar und ersetzt nicht die Beratung durch einen zugelassenen Finanzberater. Alle Daten werden ohne Gewähr bereitgestellt. Eine Haftung für die Richtigkeit, Vollständigkeit oder Aktualität der Informationen wird ausgeschlossen.</p>
+      <h3>Keine Handelsausführung</h3>
+      <p>Über dieses Tool werden keinerlei Käufe oder Verkäufe von Wertpapieren ausgeführt. Es handelt sich um ein reines Analyse- und Beobachtungswerkzeug.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script src="js/app.js"></script>
+<script src="js/watchlist.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/fundamentals.js"></script>
+<script src="js/news.js"></script>
+<script src="js/screener.js"></script>
+<script src="js/browse.js"></script>
+<script src="js/insider.js"></script>
+<script src="js/heatmap.js"></script>
+</body>
+</html>

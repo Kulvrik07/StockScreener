@@ -1,0 +1,16 @@
+[build]
+  publish = "frontend"
+
+# Proxy alle /api/* Anfragen zum Backend auf Render
+# BACKEND_URL nach dem Render-Deploy ersetzen (z.B. https://stockscreener-api.onrender.com)
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://stockscreener-api.onrender.com/api/:splat"
+  status = 200
+  force  = true
+
+# SPA-Fallback (alle anderen Routen → index.html)
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

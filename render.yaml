@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: stockscreener-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: FINNHUB_API_KEY
+        sync: false          # im Render Dashboard manuell setzen
+      - key: PYTHON_VERSION
+        value: "3.11"
