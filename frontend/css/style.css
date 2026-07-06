@@ -947,11 +947,30 @@ body { display: flex; }
 /* ══════════ Nav-Badge ══════════ */
 .nav-btn { position: relative; }
 
+
 /* ══════════════════════════════════════════════════════
-   MOBILE RESPONSIVE  (≤ 768px)
+   NEWS COLLAPSE (alle Bildschirmgrößen)
    ══════════════════════════════════════════════════════ */
 
-/* ── Insider-Tabelle scrollbar ── */
+#news-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  line-height: 1;
+  transition: color var(--transition);
+}
+#news-toggle-btn:hover { color: var(--text); }
+
+#news-list.collapsed { display: none; }
+
+.news-collapsed {
+  /* Panel bleibt sichtbar, nur Liste ist hidden */
+}
+
+/* ── Insider / Earnings Tabellen scrollbar ── */
 #card-insider .alpha-table,
 #card-earnings .alpha-table {
   display: block;
@@ -964,30 +983,33 @@ body { display: flex; }
   max-height: 320px;
 }
 
+/* ══════════════════════════════════════════════════════
+   MOBILE RESPONSIVE  (≤ 768px)
+   ══════════════════════════════════════════════════════ */
+
 @media (max-width: 768px) {
 
-  /* Sidebar als Bottom-Nav-Bar */
-  :root { --sidebar-w: 0px; --topbar-h: 44px; }
+  /* ── Grundlayout: Sidebar → Bottom-Bar ── */
+  :root { --topbar-h: 44px; }
 
-  html, body { overflow: hidden; }
-
+  html, body { overflow: hidden; height: 100%; }
   body { flex-direction: column; }
 
+  /* Sidebar wird zur Bottom-Tab-Bar */
   #sidebar {
     width: 100%;
     min-width: 100%;
     height: auto;
-    order: 2;            /* unter dem Main-Content */
+    order: 2;
     flex-direction: row;
     border-right: none;
     border-top: 1px solid var(--border);
-    overflow: visible;
+    background: var(--bg-surface);
+    flex-shrink: 0;
   }
 
-  /* Logo + Suche ausblenden auf Mobile */
   #logo, #search-box, #watchlist-header, #watchlist-items { display: none; }
 
-  /* Nav wird zur horizontalen Tab-Bar */
   #sidebar-nav {
     flex-direction: row;
     flex: 1;
@@ -996,54 +1018,62 @@ body { display: flex; }
     border-top: none;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  #sidebar-nav::-webkit-scrollbar { display: none; }
 
   .nav-btn {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 6px 4px;
+    gap: 3px;
+    padding: 8px 4px 6px;
     font-size: 10px;
+    font-weight: 500;
     border-radius: 0;
     flex: 1;
-    min-width: 52px;
+    min-width: 50px;
     white-space: nowrap;
+    border-top: 2px solid transparent;
+    color: var(--text-dim);
   }
-  .nav-btn svg { width: 18px; height: 18px; }
-  .nav-btn.active { border-top: 2px solid var(--accent); }
-
-  /* Main-Content nimmt restliche Höhe */
-  #main {
-    flex: 1;
-    order: 1;
-    min-height: 0;
-    overflow: hidden;
+  .nav-btn svg { width: 20px; height: 20px; }
+  .nav-btn.active {
+    border-top-color: var(--accent);
+    color: var(--accent);
+    background: transparent;
   }
 
-  /* Topbar: kompakter, kein Volume/Updated */
+  /* ── Main ── */
+  #main { flex: 1; order: 1; min-height: 0; overflow: hidden; }
+
+  /* ── Topbar: kompakt, einzeilig ── */
   #topbar {
-    padding: 0 10px;
-    gap: 8px;
-    flex-wrap: nowrap;
+    padding: 0 12px;
+    gap: 10px;
+    height: 44px;
   }
   #active-ticker-info {
-    gap: 6px;
-    flex-wrap: wrap;
+    gap: 8px;
     flex: 1;
     min-width: 0;
+    flex-wrap: nowrap;
+    align-items: center;
   }
-  #ticker-symbol { font-size: 14px; }
-  #ticker-price  { font-size: 14px; }
+  #ticker-symbol { font-size: 15px; }
+  #ticker-name   { display: none; }
+  #ticker-price  { font-size: 15px; }
+  #ticker-change { font-size: 12px; }
   #ticker-volume, #last-updated { display: none; }
-  #refresh-btn   { padding: 4px 8px; font-size: 11px; }
+  #refresh-btn   { padding: 5px 10px; font-size: 11px; flex-shrink: 0; }
 
-  /* ── Chart View ── */
+  /* ── Chart Controls ── */
   #chart-controls-row {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
+    align-items: stretch;
+    flex-wrap: nowrap;
   }
+
   #range-tabs {
     border-right: none;
     border-bottom: 1px solid var(--border);
@@ -1051,116 +1081,113 @@ body { display: flex; }
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap;
     width: 100%;
-    padding: 4px 8px;
+    padding: 5px 10px;
+    scrollbar-width: none;
   }
+  #range-tabs::-webkit-scrollbar { display: none; }
+
   #indicator-bar {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap;
     width: 100%;
-    padding: 4px 8px;
+    padding: 5px 10px;
     border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
   }
-  .range-group-label { display: none; }
-  .range-sep { display: none; }
+  #indicator-bar::-webkit-scrollbar { display: none; }
 
-  /* Chart + News: untereinander statt nebeneinander */
-  .chart-content {
-    flex-direction: column;
-  }
+  .range-group-label, .range-sep { display: none; }
+  .range-btn { padding: 4px 12px; font-size: 12px; }
+  .ind-btn   { padding: 4px 10px; font-size: 11px; }
+
+  /* ── Chart + News: untereinander ── */
+  .chart-content { flex-direction: column; }
+
+  #chart-wrapper { flex: 1; min-height: 0; }
+  #chart-main    { flex: 1; min-height: 0; }
+
+  /* ── News Panel: unten, einklappbar ── */
   #news-panel {
     width: 100%;
     min-width: 0;
-    max-height: 200px;
     border-left: none;
     border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    max-height: 240px;
+    transition: max-height 0.2s ease;
   }
+  #news-panel.news-collapsed {
+    max-height: 40px;  /* nur der Header */
+  }
+  #news-list { max-height: 200px; overflow-y: auto; }
+
+  #news-header {
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* Sub-Charts kleiner auf Mobile */
+  .sub-chart { height: 80px; min-height: 80px; }
+  #chart-rs  { height: 70px; }
+
+  /* ── Chart-Toolbar ── */
+  #chart-toolbar {
+    padding: 4px 10px;
+    gap: 6px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  #chart-toolbar::-webkit-scrollbar { display: none; }
+  .draw-btn { font-size: 16px; padding: 4px 8px; }
 
   /* ── Fundamentals ── */
-  #fund-grid {
-    grid-template-columns: 1fr;
-  }
+  #view-fundamentals { padding: 10px; }
+  #fund-grid { grid-template-columns: 1fr; gap: 10px; }
 
-  /* ── Insider View ── */
-  #insider-layout {
-    grid-template-columns: 1fr;
-  }
+  /* ── Insider ── */
+  #view-insider { padding: 10px; }
+  #insider-layout { grid-template-columns: 1fr; gap: 10px; }
   .alpha-card:nth-child(2) { grid-column: auto; }
-  #card-insider > div {
-    max-height: 280px;
-    overflow-y: auto;
-  }
+  #card-insider > div { max-height: 260px; }
 
   /* ── Screener ── */
   #view-screener { flex-direction: column; overflow-y: auto; }
-  #screener-filters { flex-shrink: 0; }
-  .filter-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  #screener-results { overflow-x: auto; }
+  #screener-filters { flex-shrink: 0; padding: 10px; }
+  .filter-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  #screener-results { overflow-x: auto; flex-shrink: 0; }
 
   /* ── Heatmap ── */
-  #heatmap-grid { padding: 8px; gap: 3px; }
-  .heatmap-tile { min-width: 80px; min-height: 70px; }
+  #heatmap-header { padding: 8px 12px; flex-wrap: wrap; gap: 6px; }
+  #heatmap-grid { padding: 8px; gap: 4px; }
+  .heatmap-tile { min-width: 90px; min-height: 80px; }
   .hm-sector { font-size: 9px; }
-  .hm-ticker { font-size: 11px; }
-  .hm-pct    { font-size: 11px; }
+  .hm-ticker { font-size: 12px; }
+  .hm-pct    { font-size: 12px; }
 
   /* ── Browse ── */
-  #browse-header { flex-wrap: wrap; gap: 6px; padding: 8px; }
-  #browse-group-tabs { order: 2; width: 100%; }
-  #browse-content { overflow-x: auto; }
-  .browse-table td.name-cell { max-width: 100px; }
+  #browse-header { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+  #browse-group-tabs { width: 100%; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  #browse-group-tabs::-webkit-scrollbar { display: none; }
+  #browse-content { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .browse-table td.name-cell { max-width: 110px; }
 
-  /* ── Alpha-Tabellen scrollbar ── */
-  .alpha-table { min-width: 520px; }
+  /* ── Tabellen-Scrolling ── */
+  .alpha-table { min-width: 500px; }
+  .screener-table { min-width: 680px; }
   .alpha-card { overflow-x: auto; }
-  .screener-table { min-width: 700px; }
 
-  /* ── Chart-Toolbar ── */
-  #chart-toolbar { overflow-x: auto; flex-wrap: nowrap; padding: 3px 6px; }
-  .draw-btn { font-size: 16px; padding: 3px 6px; }
-
-  /* Sub-Charts kleiner */
-  .sub-chart { height: 80px; min-height: 80px; }
-  #chart-rs  { height: 70px; }
+  /* ── Impressum ── */
+  #impressum-wrap { margin: 20px auto; padding: 0 16px; }
 }
 
-@media (max-width: 480px) {
+/* ── Sehr kleiner Screen ── */
+@media (max-width: 390px) {
   .filter-grid { grid-template-columns: 1fr; }
-  #topbar { padding: 0 8px; }
-  #ticker-name { display: none; }
+  .nav-btn { min-width: 44px; font-size: 9px; }
+  #ticker-symbol { font-size: 13px; }
+  #ticker-price  { font-size: 13px; }
   .browse-table td.name-cell { display: none; }
 }
-
-/* ══════════ Impressum ══════════ */
-#view-impressum { overflow-y: auto; justify-content: flex-start; }
-#impressum-wrap {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 0 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-#impressum-wrap h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-bright);
-  margin-bottom: 4px;
-}
-#impressum-wrap h3 {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 8px;
-}
-#impressum-wrap p {
-  color: var(--text);
-  line-height: 1.7;
-  font-size: 13px;
-}
-#impressum-wrap a { color: var(--accent); text-decoration: none; }
-#impressum-wrap a:hover { text-decoration: underline; }
