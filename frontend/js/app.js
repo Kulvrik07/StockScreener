@@ -185,6 +185,63 @@ document.addEventListener("DOMContentLoaded", () => {
   // Heatmap-Modul initialisieren
   HeatmapModule.init();
 
+  // ── Mobile Suche ──
+  const mobileSearchBtn     = document.getElementById("mobile-search-btn");
+  const mobileSearchOverlay = document.getElementById("mobile-search-overlay");
+  const mobileSearchInput   = document.getElementById("mobile-search-input");
+  const mobileSearchClose   = document.getElementById("mobile-search-close");
+  const mobileResultsList   = document.getElementById("mobile-search-results");
+
+  function openMobileSearch() {
+    mobileSearchOverlay.classList.remove("hidden");
+    mobileSearchInput.value = "";
+    mobileResultsList.innerHTML = "";
+    mobileResultsList.classList.add("hidden");
+    setTimeout(() => mobileSearchInput.focus(), 80);
+  }
+  function closeMobileSearch() {
+    mobileSearchOverlay.classList.add("hidden");
+    mobileSearchInput.value = "";
+    mobileResultsList.classList.add("hidden");
+  }
+
+  mobileSearchBtn.addEventListener("click", openMobileSearch);
+  mobileSearchClose.addEventListener("click", closeMobileSearch);
+
+  let mobileSearchTimer = null;
+  mobileSearchInput.addEventListener("input", () => {
+    clearTimeout(mobileSearchTimer);
+    const q = mobileSearchInput.value.trim();
+    if (q.length < 1) { mobileResultsList.classList.add("hidden"); return; }
+    mobileSearchTimer = setTimeout(async () => {
+      try {
+        const results = await apiFetch(`/search?q=${encodeURIComponent(q)}`);
+        const items   = results.results || results || [];
+        if (!items.length) { mobileResultsList.classList.add("hidden"); return; }
+        mobileResultsList.innerHTML = items.slice(0, 8).map(r =>
+          `<li data-ticker="${r.ticker}">
+            <span class="sr-ticker">${r.ticker}</span>
+            <span class="sr-name">${r.name || ""}</span>
+          </li>`
+        ).join("");
+        mobileResultsList.classList.remove("hidden");
+        mobileResultsList.querySelectorAll("li").forEach(li => {
+          li.addEventListener("click", () => {
+            selectTicker(li.dataset.ticker);
+            WatchlistModule.addTicker(li.dataset.ticker);
+            closeMobileSearch();
+            switchView("chart");
+          });
+        });
+      } catch(_) {}
+    }, 280);
+  });
+
+  // Schließen bei Klick außerhalb
+  mobileSearchOverlay.addEventListener("click", e => {
+    if (e.target === mobileSearchOverlay) closeMobileSearch();
+  });
+
   // Polling starten
   startPolling();
 });

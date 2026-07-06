@@ -79,9 +79,21 @@
       <span id="last-updated" class="dim"></span>
     </div>
     <div id="topbar-actions">
+      <button id="mobile-search-btn" title="Suche" aria-label="Suche">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
       <button id="refresh-btn" title="Daten aktualisieren">&#x21BB; Refresh</button>
     </div>
   </header>
+
+  <!-- Mobile Suchleiste (Overlay) -->
+  <div id="mobile-search-overlay" class="hidden">
+    <div id="mobile-search-inner">
+      <input id="mobile-search-input" type="text" placeholder="Ticker suchen, z.B. AAPL…" autocomplete="off" />
+      <button id="mobile-search-close">&#x2715;</button>
+    </div>
+    <ul id="mobile-search-results" class="dropdown hidden"></ul>
+  </div>
 
   <!-- ── VIEW: Chart ── -->
   <section id="view-chart" class="view active">
