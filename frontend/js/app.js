@@ -40,7 +40,7 @@ function changeClass(pct) {
 }
 
 async function apiFetch(path) {
-  const resp = await fetch(API + path);
+  const resp = await fetch(API + path, { cache: "no-store" });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
