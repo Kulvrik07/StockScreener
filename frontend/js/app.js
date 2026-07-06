@@ -208,6 +208,10 @@ document.addEventListener("DOMContentLoaded", () => {
   mobileSearchBtn.addEventListener("click", openMobileSearch);
   mobileSearchClose.addEventListener("click", closeMobileSearch);
 
+  // Chart-Placeholder CTA
+  const chartCTA = document.getElementById("chart-search-cta");
+  if (chartCTA) chartCTA.addEventListener("click", openMobileSearch);
+
   let mobileSearchTimer = null;
   mobileSearchInput.addEventListener("input", () => {
     clearTimeout(mobileSearchTimer);

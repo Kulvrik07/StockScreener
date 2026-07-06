@@ -1278,3 +1278,49 @@ body { display: flex; }
 @media (max-width: 768px) {
   #mobile-search-btn { display: flex; align-items: center; justify-content: center; }
 }
+
+/* ── Mobile Search Button sichtbar ── */
+#mobile-search-btn {
+  display: none;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  gap: 5px;
+  align-items: center;
+}
+#mobile-search-label { display: inline; }
+
+/* Chart-Placeholder mit Suche-CTA */
+#chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--text-dim);
+  font-size: 14px;
+  height: 100%;
+}
+#chart-search-cta {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+}
+#chart-search-cta:hover { background: var(--accent-hover); }
+
+@media (max-width: 768px) {
+  #mobile-search-btn { display: flex; }
+  #refresh-btn span  { display: none; }   /* "Refresh" Text ausblenden, nur Icon */
+}

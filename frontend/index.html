@@ -79,8 +79,9 @@
       <span id="last-updated" class="dim"></span>
     </div>
     <div id="topbar-actions">
-      <button id="mobile-search-btn" title="Suche" aria-label="Suche">
+      <button id="mobile-search-btn" title="Aktie suchen">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span id="mobile-search-label">Suche</span>
       </button>
       <button id="refresh-btn" title="Daten aktualisieren">&#x21BB; Refresh</button>
     </div>
@@ -149,7 +150,12 @@
           <button class="draw-btn" data-tool="fib" title="Fibonacci Retracement">&#x1F4CF;</button>
           <button class="draw-btn" data-tool="clear" title="Alle Zeichnungen löschen">&#x1F5D1;</button>
         </div>
-        <div id="chart-main"></div>
+        <div id="chart-main">
+          <div id="chart-placeholder">
+            <p>Keine Aktie ausgewählt</p>
+            <button id="chart-search-cta">&#x1F50D; Aktie suchen</button>
+          </div>
+        </div>
         <div id="chart-rs"   class="sub-chart hidden"></div>
         <div id="chart-rsi"  class="sub-chart hidden"></div>
         <div id="chart-macd" class="sub-chart hidden"></div>
