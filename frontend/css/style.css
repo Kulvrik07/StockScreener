@@ -1071,7 +1071,8 @@ body { display: flex; }
   #ticker-name   { display: none; }
   #ticker-price  { font-size: 15px; }
   #ticker-change { font-size: 12px; }
-  #ticker-volume, #last-updated { display: none; }
+  #ticker-volume { display: none; }
+  #last-updated { font-size: 10px; color: var(--text-dim); }
   #refresh-btn   { padding: 5px 10px; font-size: 11px; flex-shrink: 0; }
 
   /* ── Chart Controls ── */

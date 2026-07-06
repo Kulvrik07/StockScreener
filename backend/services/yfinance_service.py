@@ -90,8 +90,10 @@ def get_quote(ticker: str) -> dict:
     chg   = round(((price - prev) / prev) * 100, 2) if prev else 0
     return {
         "ticker": ticker.upper(), "price": price, "prev_close": prev,
-        "change_pct": chg, "volume": int(meta.get("regularMarketVolume", 0)),
+        "change_pct": chg, "change": round(price - prev, 2),
+        "volume": int(meta.get("regularMarketVolume", 0)),
         "market_cap": 0, "currency": meta.get("currency", "USD"),
+        "name": meta.get("shortName", meta.get("longName", ticker)),
         "updated_at": datetime.utcnow().isoformat() + "Z",
     }
 

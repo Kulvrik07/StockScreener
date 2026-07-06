@@ -73,12 +73,15 @@ async function updateTopbar(ticker) {
 
   try {
     const q = await apiFetch(`/quote/${ticker}`);
-    nm.textContent  = ticker;
+    nm.textContent  = q.name || ticker;
     pr.textContent  = "$" + fmt(q.price);
     ch.textContent  = (q.change_pct >= 0 ? "+" : "") + fmt(q.change_pct) + "%";
     ch.className    = changeClass(q.change_pct);
     vol.textContent = q.volume ? "Vol: " + fmtBig(q.volume) : "";
-    upd.textContent = q.updated_at ? "Stand: " + new Date(q.updated_at).toLocaleTimeString("de-DE") : "";
+    if (q.updated_at) {
+      const t = new Date(q.updated_at);
+      upd.textContent = t.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+    }
   } catch(e) {
     nm.textContent = "Fehler beim Laden";
   }
