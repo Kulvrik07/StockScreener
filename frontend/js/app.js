@@ -134,7 +134,11 @@ function stopPolling() {
 document.addEventListener("DOMContentLoaded", () => {
   // Nav-Buttons
   document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.addEventListener("click", () => switchView(btn.dataset.view));
+    if (btn.id === "mobile-search-btn") {
+      btn.addEventListener("click", openMobileSearch);
+    } else {
+      btn.addEventListener("click", () => switchView(btn.dataset.view));
+    }
   });
 
   // Zeitrahmen-Buttons

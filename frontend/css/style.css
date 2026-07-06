@@ -1199,31 +1199,7 @@ body { display: flex; }
   .browse-table td.name-cell { display: none; }
 }
 
-/* ══════════ Mobile Suche FAB ══════════ */
-#mobile-search-btn {
-  display: none;
-  position: fixed;
-  bottom: calc(var(--tab-h, 56px) + 16px);
-  right: 16px;
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent);
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  line-height: 0;
-  transition: background var(--transition), transform 0.15s;
-}
-#mobile-search-btn:active { transform: scale(0.93); }
-
-@media (max-width: 768px) {
-  #mobile-search-btn { display: flex; }
-}
+/* ══════════ Mobile Suche Overlay ══════════ */
 
 #mobile-search-overlay {
   position: fixed;
