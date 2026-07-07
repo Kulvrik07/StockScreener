@@ -54,3 +54,17 @@ def get_relative_strength(ticker: str, range: str = "1D"):
     with _cache_lock:
         _cache[key] = data
     return {**data, "from_cache": False}
+
+
+@router.get("/gex/{ticker}")
+def get_gamma_exposure(ticker: str):
+    key = f"gex:{ticker.upper()}"
+    with _cache_lock:
+        cached = _cache.get(key)
+    if cached is not None:
+        return {**cached, "from_cache": True}
+
+    data = yfinance_service.get_gamma_exposure(ticker.upper())
+    with _cache_lock:
+        _cache[key] = data
+    return {**data, "from_cache": False}

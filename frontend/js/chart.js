@@ -183,6 +183,39 @@ const ChartModule = (() => {
     });
   }
 
+  // Cumulative Volume Delta: Summe über (close>open ? +vol : -vol)
+  function cvd(candles) {
+    let v = 0;
+    return candles.map(c => {
+      v += c.close >= c.open ? c.volume : -c.volume;
+      return v;
+    });
+  }
+
+  // Volume Profile: Volumen pro Preis-Level (Histogram rechts)
+  function volumeProfile(candles, bins = 24) {
+    const lows  = candles.map(c => c.low);
+    const highs = candles.map(c => c.high);
+    const min = Math.min(...lows), max = Math.max(...highs);
+    if (max === min) return [];
+    const step = (max - min) / bins;
+    const levels = Array.from({ length: bins }, (_, i) => ({
+      price: min + step * (i + 0.5),
+      vol: 0, buyVol: 0, sellVol: 0,
+    }));
+    candles.forEach(c => {
+      const startBin = Math.floor((c.low - min) / step);
+      const endBin   = Math.floor((c.high - min) / step);
+      const isBuy    = c.close >= c.open;
+      for (let b = Math.max(0, startBin); b <= Math.min(bins - 1, endBin); b++) {
+        levels[b].vol += c.volume / (endBin - startBin + 1);
+        if (isBuy) levels[b].buyVol += c.volume / (endBin - startBin + 1);
+        else levels[b].sellVol += c.volume / (endBin - startBin + 1);
+      }
+    });
+    return levels;
+  }
+
   // ─────────── Chart-Hilfsfunktionen ───────────
 
   function mkChart(el, opts = {}) {
@@ -348,13 +381,42 @@ const ChartModule = (() => {
 
   // ─────────── Haupt-Load-Funktion ───────────
 
-  async function load(ticker, range) {
+  // Trackt ob der aktuelle load-Aufruf ein Poll-Update ist (kein Rebuild)
+  let _isPollUpdate = false;
+  let _lastTicker   = null;
+  let _lastRange    = null;
+  // Referenzen auf Volume-Series für Updates
+  let volSeries     = null;
+
+  async function load(ticker, range, isPoll = false) {
     if (State.activeView !== "chart") return;
     const mainEl = document.getElementById("chart-main");
     const rsEl   = document.getElementById("chart-rs");
     const rsiEl  = document.getElementById("chart-rsi");
     const macdEl = document.getElementById("chart-macd");
     const auxEl  = document.getElementById("chart-aux");
+
+    // Poll-Update: nur Daten updaten, Chart nicht zerstören
+    if (isPoll && mainChart && _lastTicker === ticker && _lastRange === range) {
+      try {
+        const data = await apiFetch(`/chart/${ticker}?range=${encodeURIComponent(range)}`);
+        if (!data.candles || data.candles.length === 0) return;
+        const C = data.candles;
+        currentCandles = C;
+        // Letzte Kerze updaten (und neue Kerzen hinzufügen)
+        C.forEach(c => {
+          candleSeries.update({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close });
+        });
+        // Volume updaten
+        if (volSeries) {
+          C.forEach(c => volSeries.update({ time: c.time, value: c.volume, color: c.close >= c.open ? "#26a69a44" : "#ef535044" }));
+        }
+        return;  // KEIN fitContent, KEIN destroyAll → Zoom bleibt erhalten
+      } catch(e) { return; }
+    }
+
+    _lastTicker = ticker;
+    _lastRange  = range;
 
     if (!mainChart) mainEl.innerHTML = "<div id='chart-placeholder'><span class='loading'>Lade Chart</span></div>";
 
@@ -373,7 +435,7 @@ const ChartModule = (() => {
       const showRSI   = inds.has("rsi");
       const showStoch = inds.has("stoch");
       const showMACD  = inds.has("macd");
-      const showAux   = inds.has("cci") || inds.has("atr") || inds.has("obv") || inds.has("williams");
+      const showAux   = inds.has("cci") || inds.has("atr") || inds.has("obv") || inds.has("williams") || inds.has("cvd");
 
       rsEl.classList.toggle("hidden",   !showRS);
       rsiEl.classList.toggle("hidden",  !(showRSI || showStoch));
@@ -405,12 +467,12 @@ const ChartModule = (() => {
 
       // Volume
       if (inds.has("volume")) {
-        const vs = mainChart.addHistogramSeries({
+        volSeries = mainChart.addHistogramSeries({
           priceFormat: { type: "volume" }, priceScaleId: "vol",
           scaleMargins: { top: 0.85, bottom: 0 },
         });
-        vs.setData(C.map(c => ({ time: c.time, value: c.volume, color: c.close >= c.open ? "#26a69a44" : "#ef535044" })));
-      }
+        volSeries.setData(C.map(c => ({ time: c.time, value: c.volume, color: c.close >= c.open ? "#26a69a44" : "#ef535044" })));
+      } else { volSeries = null; }
 
       // SMA 20
       if (inds.has("sma20")) { const s = mkLine(mainChart, BLUE, "SMA20"); setData(s, T, sma(closes, 20)); }
@@ -495,8 +557,9 @@ const ChartModule = (() => {
         syncTimeScale(mainChart, macdChart);
       }
 
-      // ── Aux (CCI / ATR / OBV / Williams) ──
-      if (showAux) {
+      // ── Aux (CCI / ATR / OBV / Williams / CVD) ──
+      const showCVD = inds.has("cvd");
+      if (showAux || showCVD) {
         auxEl.innerHTML = "";
         auxChart = mkChart(auxEl, { timeScale: { ...baseOpts().timeScale, visible: false } });
 
@@ -516,7 +579,32 @@ const ChartModule = (() => {
           const s = mkLine(auxChart, PINK, "%R14");
           setData(s, T, williamsR(C));
         }
+        if (showCVD) {
+          const s = mkLine(auxChart, "#ff9800", "CVD", { lineWidth: 2 });
+          setData(s, T, cvd(C));
+        }
         syncTimeScale(mainChart, auxChart);
+      } else {
+        auxEl.classList.add("hidden");
+      }
+
+      // ── Volume Profile (Overlay auf Main-Chart) ──
+      if (inds.has("vprofile")) {
+        const levels = volumeProfile(C, 30);
+        const maxVol = Math.max(...levels.map(l => l.vol));
+        const vpSeries = mainChart.addHistogramSeries({
+          priceScaleId: "vp",
+          priceFormat: { type: "volume" },
+          scaleMargins: { top: 0.1, bottom: 0.1 },
+        });
+        // Als horizontales Histogramm: jeder Preis-Level bekommt einen Datenpunkt
+        const vpData = levels.map(l => ({
+          time: T[0],   // an den Anfang setzen
+          value: l.vol,
+          color: l.buyVol >= l.sellVol ? "#26a69a33" : "#ef535033",
+        }));
+        // Volume Profile als separate Series rechts
+        vpSeries.setData(vpData);
       }
 
       // ── RS vs SPY ──

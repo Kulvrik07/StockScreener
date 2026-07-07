@@ -3,7 +3,7 @@ Yahoo Finance Service – curl_cffi mit Chrome-TLS-Fingerprint + Session-Crumb.
 Umgeht Cloudflare-Fingerprinting und löst Crumb-Authentifizierung automatisch.
 """
 from curl_cffi import requests as cf
-from datetime import datetime
+from datetime import datetime, timezone
 import threading
 import time
 
@@ -186,7 +186,10 @@ def get_chart_data(ticker: str, time_range: str = "1D") -> dict:
         c = closes[i] if i < len(closes) else None
         v = vols[i]   if i < len(vols)   else 0
         if None in (o, h, l, c): continue
-        raw_candles.append({"time": int(ts), "open": round(float(o), 4),
+        # UTC → lokale Zeit (Europe/Berlin = MEZ/MESZ)
+        dt = datetime.fromtimestamp(int(ts), tz=timezone.utc).astimezone()
+        local_ts = int(dt.replace(tzinfo=None).timestamp())
+        raw_candles.append({"time": local_ts, "open": round(float(o), 4),
                             "high": round(float(h), 4), "low": round(float(l), 4),
                             "close": round(float(c), 4), "volume": int(v or 0)})
 
@@ -275,6 +278,85 @@ def get_options_summary(ticker: str) -> dict:
             "put_open_interest":  put_oi,
             "expirations":      expirations[:6],  # nächste 6 Termine (Unix-Timestamps)
             "expiration_count": len(expirations),
+        }
+    except Exception as e:
+        return {"ticker": ticker.upper(), "error": str(e)}
+
+
+def get_gamma_exposure(ticker: str) -> dict:
+    """
+    Gamma Exposure (GEX) – wo sind Dealer positioniert?
+    Berechnet Net-Gamma pro Strike aus der nächsten Options-Chain.
+    Positive GEX = Dealer long Gamma (stabilisierend).
+    Negative GEX = Dealer short Gamma (volatilitätsverstärkend).
+    """
+    import math
+    try:
+        r = _get(f"{YF_BASE}/v7/finance/options/{ticker}", timeout=15)
+        r.raise_for_status()
+        data    = r.json().get("optionChain", {}).get("result", [{}])[0]
+        options = data.get("options", [{}])[0]
+        calls   = options.get("calls", [])
+        puts    = options.get("puts",  [])
+        spot    = data.get("quote", {}).get("regularMarketPrice", 0)
+        if not spot or not calls:
+            return {"ticker": ticker.upper(), "error": "Keine Optionsdaten"}
+
+        # ATM IV für Gamma-Berechnung
+        atm_calls = sorted(calls, key=lambda c: abs(c.get("strike", 0) - spot))
+        iv = atm_calls[0].get("impliedVolatility", 0.3) if atm_calls else 0.3
+        if iv <= 0: iv = 0.3
+
+        # GEX pro Strike:  Gamma = N(d1) / (S * σ * √T)
+        # Vereinfacht: T = 30 Tage = 30/365
+        T = 30 / 365
+        sqrtT = math.sqrt(T)
+
+        def norm_cdf(x):
+            return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+        strikes_gex = []
+        total_gex = 0
+        for c in calls:
+            K = c.get("strike", 0)
+            oi = c.get("openInterest", 0)
+            if K <= 0 or oi <= 0: continue
+            d1 = (math.log(spot / K) + (0.05 + 0.5 * iv * iv) * T) / (iv * sqrtT)
+            gamma = norm_cdf(d1) / (spot * iv * sqrtT)
+            # Call GEX: +1 (Dealer short call → long gamma)
+            gex = gamma * oi * 100 * spot * spot
+            strikes_gex.append({"strike": K, "gex": round(gex, 2), "type": "call"})
+            total_gex += gex
+
+        for p in puts:
+            K = p.get("strike", 0)
+            oi = p.get("openInterest", 0)
+            if K <= 0 or oi <= 0: continue
+            d1 = (math.log(spot / K) + (0.05 + 0.5 * iv * iv) * T) / (iv * sqrtT)
+            gamma = norm_cdf(d1) / (spot * iv * sqrtT)
+            # Put GEX: -1 (Dealer short put → short gamma)
+            gex = -gamma * oi * 100 * spot * spot
+            strikes_gex.append({"strike": K, "gex": round(gex, 2), "type": "put"})
+            total_gex += gex
+
+        # Nach Strike sortieren
+        strikes_gex.sort(key=lambda x: x["strike"])
+
+        # Gamma Flip Level (wo GEX von + nach - wechselt)
+        cum = 0
+        flip_level = None
+        for s in strikes_gex:
+            cum += s["gex"]
+            if flip_level is None and cum < 0:
+                flip_level = s["strike"]
+
+        return {
+            "ticker":       ticker.upper(),
+            "spot":         round(spot, 2),
+            "total_gex":    round(total_gex, 2),
+            "flip_level":   flip_level,
+            "strikes":      strikes_gex[-40:],   # letzte 40 Strikes
+            "iv":           round(iv * 100, 1),
         }
     except Exception as e:
         return {"ticker": ticker.upper(), "error": str(e)}

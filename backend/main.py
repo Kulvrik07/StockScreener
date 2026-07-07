@@ -21,6 +21,7 @@ from backend.routes.earnings     import router as earnings_router
 from backend.routes.insider      import router as insider_router
 from backend.routes.options      import router as options_router
 from backend.routes.heatmap      import router as heatmap_router
+from backend.routes.cot          import router as cot_router
 
 load_dotenv()
 
@@ -67,6 +68,7 @@ app.include_router(earnings_router,     prefix="/api")
 app.include_router(insider_router,      prefix="/api")
 app.include_router(options_router,      prefix="/api")
 app.include_router(heatmap_router,      prefix="/api")
+app.include_router(cot_router,          prefix="/api")
 
 # Frontend als statische Dateien ausliefern
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")

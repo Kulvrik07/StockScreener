@@ -123,7 +123,7 @@ function startPolling() {
 
   State.chartTimer = setInterval(() => {
     if (State.activeTicker && State.activeView === "chart") {
-      ChartModule.load(State.activeTicker, State.activeRange);
+      ChartModule.load(State.activeTicker, State.activeRange, true);
     }
   }, INTRADAY_RANGES.has(State.activeRange) ? 30000 : 60000);
 }
