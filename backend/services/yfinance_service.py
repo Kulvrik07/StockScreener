@@ -370,14 +370,28 @@ def get_screener_data(tickers: list[str]) -> list[dict]:
 # ── Browse / Marktübersicht ──────────────────────────────────────────────────
 
 BROWSE_GROUPS = {
-    "Indizes":    ["^GSPC", "^IXIC", "^DJI", "^GDAXI", "^FTSE", "^N225", "^HSI", "^STOXX50E"],
-    "Mega-Caps":  ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "BRK-B"],
-    "Tech":       ["AMD", "INTC", "QCOM", "AVGO", "TSM", "ASML", "ORCL", "CRM", "SNOW", "NET"],
-    "Finanzen":   ["JPM", "BAC", "GS", "MS", "BLK", "V", "MA", "PYPL", "AXP"],
-    "Gesundheit": ["JNJ", "PFE", "LLY", "ABBV", "MRK", "UNH", "AMGN", "GILD", "TMO"],
-    "Energie":    ["XOM", "CVX", "COP", "SLB", "EOG", "MPC", "PSX"],
-    "Rohstoffe":  ["GLD", "SLV", "USO", "GDX", "PDBC"],
-    "Krypto-ETFs":["IBIT", "FBTC", "GBTC", "ETHA"],
+    # ── US ────────────────────────────────────────────────────────────────────
+    "US-Indizes":    ["^GSPC", "^IXIC", "^DJI", "^RUT", "^VIX"],
+    "Mega-Caps":     ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "BRK-B"],
+    "Tech":          ["AMD", "INTC", "QCOM", "AVGO", "TSM", "ASML", "ORCL", "CRM", "SNOW", "NET"],
+    "Finanzen":      ["JPM", "BAC", "GS", "MS", "BLK", "V", "MA", "PYPL", "AXP"],
+    "Gesundheit":    ["JNJ", "PFE", "LLY", "ABBV", "MRK", "UNH", "AMGN", "GILD", "TMO"],
+    "Energie":       ["XOM", "CVX", "COP", "SLB", "EOG", "MPC", "PSX"],
+    "Rohstoffe-ETFs":["GLD", "SLV", "USO", "GDX", "PDBC"],
+    "Krypto-ETFs":   ["IBIT", "FBTC", "GBTC", "ETHA"],
+    # ── Globale Märkte ────────────────────────────────────────────────────────
+    "Europa":        ["^GDAXI", "^FTSE", "^FCHI", "^STOXX50E", "^SSMI", "^IBEX",
+                      "^AEX", "FTSEMIB.MI", "^ATX", "^BFX", "^OSEAX", "^OMX"],
+    "Asien-Pazifik": ["^N225", "^HSI", "000001.SS", "^KS11", "^AXJO",
+                      "^BSESN", "^TWII", "^STI", "^KLSE", "^NZ50"],
+    "Americas":      ["^GSPTSE", "^BVSP", "^MXX", "^MERV", "^IPSA"],
+    "Währungen":     ["EURUSD=X", "GBPUSD=X", "JPY=X", "AUDUSD=X",
+                      "USDCHF=X", "USDCAD=X", "USDHKD=X", "USDCNY=X",
+                      "EURGBP=X", "EURJPY=X"],
+    "Anleihen":      ["^TNX", "^TYX", "^FVX", "^IRX",
+                      "AGG", "VGIT", "TLT", "SHY"],
+    "Futures":       ["GC=F", "SI=F", "CL=F", "BZ=F", "NG=F",
+                      "HG=F", "ZW=F", "ZC=F", "ZS=F"],
 }
 
 

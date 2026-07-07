@@ -35,10 +35,19 @@ const BrowseModule = (() => {
     });
   }
 
+  // Gruppen ohne sinnvolles Volumen (Währungen, Anleihen-Yields)
+  const NO_VOLUME_GROUPS = new Set(["Währungen", "Anleihen"]);
+
   function renderTable() {
     const content = document.getElementById("browse-content");
     const rows    = data[activeGroup] || [];
     if (!rows.length) { content.innerHTML = "<p class='dim center'>Keine Daten</p>"; return; }
+
+    const isCurrency = activeGroup === "Währungen";
+    const showVol    = !NO_VOLUME_GROUPS.has(activeGroup);
+
+    // Preisgenauigkeit: Währungen 4 Dezimalstellen, sonst 2
+    const priceDec = isCurrency ? 4 : 2;
 
     const html = `
       <table class="browse-table">
@@ -48,7 +57,7 @@ const BrowseModule = (() => {
             <th>Name</th>
             <th class="num">Kurs</th>
             <th class="num">Änderung %</th>
-            <th class="num">Volumen</th>
+            ${showVol ? '<th class="num">Volumen</th>' : ""}
           </tr>
         </thead>
         <tbody>
@@ -60,9 +69,9 @@ const BrowseModule = (() => {
               <tr class="browse-row" data-ticker="${r.ticker}">
                 <td class="ticker-cell">${r.ticker}</td>
                 <td class="name-cell">${r.name || r.ticker}</td>
-                <td class="num">${fmt(r.price)} <small>${r.currency || ""}</small></td>
+                <td class="num">${fmt(r.price, priceDec)} <small>${r.currency || ""}</small></td>
                 <td class="num ${cls}">${sign}${fmt(pct)} %</td>
-                <td class="num">${fmtVol(r.volume)}</td>
+                ${showVol ? `<td class="num">${fmtVol(r.volume)}</td>` : ""}
               </tr>`;
           }).join("")}
         </tbody>
