@@ -403,14 +403,15 @@ const ChartModule = (() => {
         if (!data.candles || data.candles.length === 0) return;
         const C = data.candles;
         currentCandles = C;
-        // Letzte Kerze updaten (und neue Kerzen hinzufügen)
-        C.forEach(c => {
-          candleSeries.update({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close });
-        });
-        // Volume updaten
-        if (volSeries) {
-          C.forEach(c => volSeries.update({ time: c.time, value: c.volume, color: c.close >= c.open ? "#26a69a44" : "#ef535044" }));
+        // Nur die letzte Kerze updaten (lightweight-charts update() = letzte Kerze ersetzen)
+        const last = C[C.length - 1];
+        if (last) {
+          candleSeries.update({ time: last.time, open: last.open, high: last.high, low: last.low, close: last.close });
+          if (volSeries) {
+            volSeries.update({ time: last.time, value: last.volume, color: last.close >= last.open ? "#26a69a44" : "#ef535044" });
+          }
         }
+        // Falls eine NEUE Kerze dazukam (Zeit unterschiedlich), update() fügt sie automatisch hinzu
         return;  // KEIN fitContent, KEIN destroyAll → Zoom bleibt erhalten
       } catch(e) { return; }
     }
@@ -517,6 +518,7 @@ const ChartModule = (() => {
         candleSeries.setMarkers(markers);
       }
 
+      // Nach Rebuild: einmal fitContent, damit alle Kerzen sichtbar sind
       mainChart.timeScale().fitContent();
 
       // ── RSI / Stochastic (geteilt) ──

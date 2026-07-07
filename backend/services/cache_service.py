@@ -11,8 +11,8 @@ quote_cache: TTLCache = TTLCache(maxsize=200, ttl=15)
 # Fundamentaldaten: 1 Stunde TTL (ändern sich selten)
 fundamentals_cache: TTLCache = TTLCache(maxsize=100, ttl=3600)
 
-# Chart-Daten: 5 Minuten TTL
-chart_cache: TTLCache = TTLCache(maxsize=100, ttl=300)
+# Chart-Daten: 15 Sekunden TTL (Intraday-Polling)
+chart_cache: TTLCache = TTLCache(maxsize=100, ttl=15)
 
 # News: 3 Minuten TTL
 news_cache: TTLCache = TTLCache(maxsize=100, ttl=180)
